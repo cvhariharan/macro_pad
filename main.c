@@ -19,11 +19,11 @@ void main() {
     Keypad keypad = keypad_init(col_pins, row_pins, keymap);
 
     while(1) {
-        char c = keypad_key_pressed(keypad);
+        char c = keypad_key_pressed(&keypad);
         if(c != '\0') {
             printf("%c", c);
         }
-        busy_wait_ms(100);
+        // busy_wait_ms(100);
     }
     //keypad_destroy(keypad);
 }

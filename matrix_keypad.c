@@ -35,6 +35,7 @@ Keypad keypad_init(int col_pins[4], int row_pins[4], char keymap[4][4]) {
         gpio_set_dir(keypad.row_pins[i], GPIO_OUT);
         
     }
+    keypad.last_pressed = get_absolute_time();
 
     return keypad;
 }
@@ -44,26 +45,31 @@ Keypad keypad_init(int col_pins[4], int row_pins[4], char keymap[4][4]) {
 * Should be run inside an infinite loop
 * @param Keypad keypad
 */
-char keypad_key_pressed(Keypad keypad) {
+char keypad_key_pressed(Keypad *keypad) {
     uint32_t cols, i;
     for(i = 0; i < 4; i++) {
-        gpio_put(keypad.row_pins[i], true);
+        gpio_put(keypad->row_pins[i], true);
         busy_wait_us(20);
-        cols = gpio_get_all() & keypad.col_mask;
-        busy_wait_us(20);
-        gpio_put(keypad.row_pins[i], false);
+        cols = gpio_get_all() & keypad->col_mask;
         if(cols != 0) {
-            break;
+            if(absolute_time_diff_us(keypad->last_pressed, get_absolute_time()) > 150000) {
+                keypad->last_pressed = get_absolute_time();
+                gpio_put(keypad->row_pins[i], false);
+                break;
+            }
+            keypad->last_pressed = get_absolute_time();
         }
+        busy_wait_us(20);
+        gpio_put(keypad->row_pins[i], false);
     }
-    if(cols == (1 << keypad.col_pins[0])) {
-        return keypad.keymap[i][0];
-    } else if (cols == (1 << keypad.col_pins[1])) {
-        return keypad.keymap[i][1];
-    } else if (cols == (1 << keypad.col_pins[2])) {
-        return keypad.keymap[i][2];
-    } else if (cols == (1 << keypad.col_pins[3])) {
-        return keypad.keymap[i][3];
+    if(cols == (1 << keypad->col_pins[0])) {
+        return keypad->keymap[i][0];
+    } else if (cols == (1 << keypad->col_pins[1])) {
+        return keypad->keymap[i][1];
+    } else if (cols == (1 << keypad->col_pins[2])) {
+        return keypad->keymap[i][2];
+    } else if (cols == (1 << keypad->col_pins[3])) {
+        return keypad->keymap[i][3];
     }
     return '\0';
 }
