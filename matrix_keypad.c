@@ -52,12 +52,12 @@ char keypad_key_pressed(Keypad *keypad) {
         busy_wait_us(20);
         cols = gpio_get_all() & keypad->col_mask;
         if(cols != 0) {
-            if(absolute_time_diff_us(keypad->last_pressed, get_absolute_time()) > 150000) {
+            if(absolute_time_diff_us(keypad->last_pressed, get_absolute_time()) > 200000) {
                 keypad->last_pressed = get_absolute_time();
                 gpio_put(keypad->row_pins[i], false);
                 break;
             }
-            keypad->last_pressed = get_absolute_time();
+            // keypad->last_pressed = get_absolute_time();
         }
         busy_wait_us(20);
         gpio_put(keypad->row_pins[i], false);
