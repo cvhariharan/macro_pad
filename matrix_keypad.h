@@ -4,8 +4,9 @@ typedef struct Keypad4x4 {
     char** keymap;
     int col_mask;
     absolute_time_t last_pressed;
+    uint8_t size;
 } Keypad;
 
-Keypad keypad_init(int[4], int[4], char[4][4]);
+Keypad keypad_init(uint8_t size, int *, int *, char [size][size]);
 char keypad_key_pressed(Keypad*);
 void keypad_destroy(Keypad);

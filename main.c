@@ -5,29 +5,31 @@
 
 #include "usb_descriptors.h"
 
-char keymap[4][4] = {{'7','4','1','A'},
-                        {'8','5','2','B'},
-                        {'9','6','3','C'},
-                        {'*','0','#','D'}};
-int col_pins[4] = {10,4,3,2};
-int row_pins[4] = {9,8,7,6};
+static char keymap[3][3] = {
+                        {'7','4','1'},
+                        {'8','5','2'},
+                        {'9','6','3'}
+                    };
+static int col_pins[3] = {10,4,3};
+static int row_pins[3] = {9,8,7};
 
-Keypad keypad;
+static Keypad keypad;
 
-void main() {
+int main() {
     board_init();
     tusb_init();
 
     stdio_init_all();
     busy_wait_ms(2000);
-    keypad = keypad_init(col_pins, row_pins, keymap);
+    keypad = keypad_init(3, col_pins, row_pins, keymap);
 
     while (1) {
         tud_task();
         hid_task();
     }
 
-  return 0;
+    keypad_destroy(keypad);
+    return 0;
 }
 
 void send_hid_report(uint8_t report_id, char btn)
@@ -39,10 +41,16 @@ void send_hid_report(uint8_t report_id, char btn)
         static bool has_keyboard_key = false;
         if ( !has_keyboard_key )
         {
+          uint8_t keycode[6] = { 0 };
           switch(btn) {
             case '1':
-                uint8_t keycode[6] = { 0 };
                 keycode[0] = HID_KEY_A;
+
+                tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
+                has_keyboard_key = true;
+            break;
+            case '4':
+                keycode[0] = HID_KEY_B;
 
                 tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
                 has_keyboard_key = true;
@@ -67,6 +75,7 @@ void hid_task(void) {
   start_ms += interval_ms;
 
   char btn = keypad_key_pressed(&keypad);
+  // printf("%d - %c\n", start_ms, btn);
 
   if (tud_suspended() && btn != '\0')
   {
